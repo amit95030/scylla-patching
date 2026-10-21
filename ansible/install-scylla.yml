@@ -1,0 +1,38 @@
+
+---
+- name: Install ScyllaDB on RHEL 9
+  hosts: default
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Verify target operating system
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "RedHat"
+          - ansible_distribution_major_version == "9"
+        fail_msg: "This playbook expects RHEL 9."
+
+    
+    - name: Import EPEL 9 GPG signing key
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9
+
+    - name: Install EPEL repository
+      ansible.builtin.dnf:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+        state: present
+        disable_gpg_check: false
+
+
+    - name: Configure ScyllaDB RPM repository
+      ansible.builtin.get_url:
+        url: "https://downloads.scylladb.com/rpm/centos/scylla-{{ scylla_version }}.repo"
+        dest: /etc/yum.repos.d/scylla.repo
+        mode: "0644"
+
+    - name: Install requested ScyllaDB version
+      ansible.builtin.dnf:
+        name: "scylla-{{ scylla_version }}.3"
+        state: present

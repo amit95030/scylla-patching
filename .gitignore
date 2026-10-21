@@ -1,0 +1,5 @@
+dyantrace.pem
+*.pem
+*.key
+*.pkrvars.hcl
+packer_cache/
