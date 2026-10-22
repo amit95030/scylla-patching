@@ -3,7 +3,6 @@ pipeline {
     agent any
 
     environment {
-        AWS_PROFILE = 'terraform-1958'
         AWS_DEFAULT_REGION = 'ap-south-1'
         AWS_REGION         = 'ap-south-1'
     }
@@ -45,19 +44,20 @@ pipeline {
         }
 
         stage('Build ScyllaDB AMI') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws-ami-credentials'
-        ]]) {
-            sh '''
-                set -eu
-                export AWS_DEFAULT_REGION=ap-south-1
-                packer build .
-            '''
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-ami-credentials'
+                ]]) {
+                    sh '''
+                        set -eu
+                        unset AWS_PROFILE
+                        aws sts get-caller-identity
+                        packer build .
+                    '''
+                }
+            }
         }
-    }
-}
     }
 
     post {
